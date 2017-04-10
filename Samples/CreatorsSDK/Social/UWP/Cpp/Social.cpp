@@ -3,6 +3,7 @@
 
 #include "pch.h"
 #include "Social.h"
+#include "PlayerManager.h"
 
 #include "ATGColors.h"
 
@@ -55,7 +56,7 @@ void Sample::HandleSignout(_In_ std::shared_ptr<xbox::services::system::xbox_liv
 // Initialize the Direct3D resources required to run.
 void Sample::Initialize(IUnknown* window, int width, int height, DXGI_MODE_ROTATION rotation)
 {
-    m_gamePad = std::make_unique<GamePad>();
+    //m_inputManagerm_gamePad = std::make_unique<GamePad>();
 
     m_keyboard = std::make_unique<Keyboard>();
     m_keyboard->SetWindow(reinterpret_cast<ABI::Windows::UI::Core::ICoreWindow*>(window));
@@ -74,34 +75,39 @@ void Sample::Initialize(IUnknown* window, int width, int height, DXGI_MODE_ROTAT
     m_deviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
 
+    m_inputManager = ref new InputManager();
+    m_inputManager.Initialize(reinterpret_cast<Windows::UI::Core::CoreWindow^>(window));
+
     SetupUI();
 
     InitializeSocialManager();
 
     std::weak_ptr<Sample> thisWeakPtr = shared_from_this();
-    m_signInContext = m_liveResources->add_signin_handler([thisWeakPtr](
-        _In_ std::shared_ptr<xbox::services::system::xbox_live_user> user,
-        _In_ xbox::services::system::sign_in_status result
-        )
-    {
-        std::shared_ptr<Sample> pThis(thisWeakPtr.lock());
-        if (pThis != nullptr)
-        {
-            pThis->HandleSignin(user, result);
-        }
-    });
+    //m_signInContext = m_liveResources->add_signin_handler([thisWeakPtr](
+    //    _In_ std::shared_ptr<xbox::services::system::xbox_live_user> user,
+    //    _In_ xbox::services::system::sign_in_status result
+    //    )
+    //{
+    //    std::shared_ptr<Sample> pThis(thisWeakPtr.lock());
+    //    if (pThis != nullptr)
+    //    {
+    //        pThis->HandleSignin(user, result);
+    //    }
+    //});
 
-    m_signOutContext = xbox::services::system::xbox_live_user::add_sign_out_completed_handler(
-        [thisWeakPtr](const xbox::services::system::sign_out_completed_event_args& args)
-    {
-        UNREFERENCED_PARAMETER(args);
-        std::shared_ptr<Sample> pThis(thisWeakPtr.lock());
-        if (pThis != nullptr)
-        {
-            pThis->HandleSignout(args.user());
-        }
-    });
+    //m_signOutContext = xbox::services::system::xbox_live_user::add_sign_out_completed_handler(
+    //    [thisWeakPtr](const xbox::services::system::sign_out_completed_event_args& args)
+    //{
+    //    UNREFERENCED_PARAMETER(args);
+    //    std::shared_ptr<Sample> pThis(thisWeakPtr.lock());
+    //    if (pThis != nullptr)
+    //    {
+    //        pThis->HandleSignout(args.user());
+    //    }
+    //});
+
 }
+
 
 #pragma region UI Methods
 void Sample::SetupUI()
@@ -238,36 +244,6 @@ void Sample::Update(DX::StepTimer const& timer)
     PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
 
     float elapsedTime = float(timer.GetElapsedSeconds());
-    auto toggleRight = false;
-    auto toggleLeft = false;
-    auto pad = m_gamePad->GetState(0);
-
-    if (pad.IsConnected())
-    {
-        m_gamePadButtons.Update(pad);
-
-        m_ui->Update(elapsedTime, pad);
-
-        if (pad.IsViewPressed() || pad.IsBPressed())
-        {
-            Windows::ApplicationModel::Core::CoreApplication::Exit();
-        }
-        if (m_gamePadButtons.rightShoulder == GamePad::ButtonStateTracker::PRESSED)
-        {
-            toggleRight = true;
-        }
-        if (m_gamePadButtons.leftShoulder == GamePad::ButtonStateTracker::PRESSED)
-        {
-            toggleLeft = true;
-        }
-    }
-    else
-    {
-        m_gamePadButtons.Reset();
-    }
-
-    auto mouse = m_mouse->GetState();
-    mouse;
 
     auto kb = m_keyboard->GetState();
     m_keyboardButtons.Update(kb);
@@ -282,50 +258,7 @@ void Sample::Update(DX::StepTimer const& timer)
         Windows::ApplicationModel::Core::CoreApplication::Exit();
     }
 
-    if (m_keyboardButtons.IsKeyPressed(Keyboard::A))
-    {
-        m_liveResources->SignIn();
-    }
-
-    if (m_keyboardButtons.IsKeyPressed(Keyboard::Left))
-    {
-        toggleLeft = true;
-    }
-
-    if (m_keyboardButtons.IsKeyPressed(Keyboard::Right))
-    {
-        toggleRight = true;
-    }
-
-    if (toggleLeft)
-    {
-        int newVal = ((int)m_selectedFriendList) - 1;
-
-        if (newVal < 0)
-        {
-            newVal = 3;
-        }
-
-        m_selectedFriendList = (friendListType)newVal;
-
-        std::lock_guard<std::mutex> guard(m_socialManagerLock);
-        RefreshUserList();
-    }
-
-    if (toggleRight)
-    {
-        int newVal = ((int)m_selectedFriendList) + 1;
-
-        if (newVal > 3)
-        {
-            newVal = 0;
-        }
-
-        m_selectedFriendList = (friendListType)newVal;
-
-        std::lock_guard<std::mutex> guard(m_socialManagerLock);
-        RefreshUserList();
-    }
+    PlayerManager::instance()->Update();
 
     if (m_socialManager != nullptr)
     {
@@ -334,6 +267,7 @@ void Sample::Update(DX::StepTimer const& timer)
     }
 
     PIXEndEvent();
+
 }
 #pragma endregion
 

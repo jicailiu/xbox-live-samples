@@ -8,6 +8,7 @@
 #include "SampleGUI.h"
 #include "UserRepeater.h"
 #include "LiveResources.h"
+#include "Input.h"
 //#include "LiveInfoHUD.h"
 
 // A basic sample implementation that creates a D3D11 device and
@@ -54,6 +55,7 @@ private:
 
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
+    void RegisterInputKeys();
 
     void SetupUI();
     void RefreshUserList();
@@ -95,9 +97,10 @@ private:
     DX::StepTimer                               m_timer;
 
     // Input devices.
-    std::unique_ptr<DirectX::GamePad>           m_gamePad;
+    //std::unique_ptr<DirectX::GamePad>           m_gamePad;
     std::unique_ptr<DirectX::Keyboard>          m_keyboard;
     std::unique_ptr<DirectX::Mouse>             m_mouse;
+    InputManager             m_inputManager;
 
     DirectX::GamePad::ButtonStateTracker        m_gamePadButtons;
     DirectX::Keyboard::KeyboardStateTracker     m_keyboardButtons;
@@ -107,6 +110,7 @@ private:
 
     // Xbox Live objects
     std::shared_ptr<ATG::LiveResources>         m_liveResources;
+
     std::shared_ptr<xbox::services::social::manager::social_manager> m_socialManager;
     function_context m_signInContext;
     function_context m_signOutContext;

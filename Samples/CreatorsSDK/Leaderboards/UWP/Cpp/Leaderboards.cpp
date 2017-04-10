@@ -230,7 +230,7 @@ void Sample::Update(DX::StepTimer const& timer)
         Windows::ApplicationModel::Core::CoreApplication::Exit();
     }
 
-    if (m_keyboardButtons.IsKeyPressed(Keyboard::A))
+    if (m_keyboardButtons.IsKeyPressed(Keyboard::A) || pad.IsAPressed())
     {
         m_liveResources->SignIn();
     }

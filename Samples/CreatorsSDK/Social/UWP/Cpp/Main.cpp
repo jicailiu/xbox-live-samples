@@ -3,7 +3,9 @@
 
 #include "pch.h"
 #include "Social.h"
+#include "PlayerManager.h"
 #include <ppltasks.h>
+
 
 using namespace concurrency;
 using namespace Windows::ApplicationModel;
@@ -129,7 +131,7 @@ protected:
     {
         if (args->Kind == ActivationKind::Launch)
         {
-            auto launchArgs = static_cast<LaunchActivatedEventArgs^>(args);
+            auto launchArgs = dynamic_cast<LaunchActivatedEventArgs^>(args);
 
             if (launchArgs->PrelaunchActivated)
             {
@@ -137,6 +139,14 @@ protected:
                 CoreApplication::Exit();
                 return;
             }
+            
+            // Query IActivatedEventArgsWithUser interface
+            IActivatedEventArgsWithUser^ argsWithUser = dynamic_cast<IActivatedEventArgsWithUser^>(args);
+            if (argsWithUser != nullptr)
+            {
+                PlayerManager::instance()->SetLaunchUser(argsWithUser->User);
+            }
+
         }
 
         int w, h;

@@ -6,6 +6,8 @@
 //
 #pragma once
 
+#define MAX_USER 4
+
 namespace ATG
 {
     class UIManager;
@@ -19,37 +21,37 @@ namespace ATG
         LiveResources();
 
         void Initialize(std::shared_ptr<ATG::UIManager> &ui, ATG::IPanel *userDependantPanel = nullptr, ATG::IPanel *nouserDependantPanel = nullptr);
-        void SignIn();
+        //void SignIn();
         void Refresh();
 
         uint32_t                                           GetTitleId()         const { return m_titleId; }
         std::wstring                                       GetServiceConfigId() const { return m_scid; }
 
-        std::shared_ptr<xbox::services::system::xbox_live_user> GetUser()       const { return m_user; }
+        //std::shared_ptr<xbox::services::system::xbox_live_user> GetUser()       const { return m_user; }
 
-        function_context add_signin_handler(_In_ std::function<void(std::shared_ptr<xbox::services::system::xbox_live_user>, xbox::services::system::sign_in_status)> handler);
-        void remove_signin_handler(_In_ function_context context);
+        //function_context add_signin_handler(_In_ std::function<void(std::shared_ptr<xbox::services::system::xbox_live_user>, xbox::services::system::sign_in_status)> handler);
 
     private:
-        void _Raise_service_call_routed_event(_In_ std::shared_ptr<xbox::services::system::xbox_live_user> user, _In_ xbox::services::system::sign_in_status result);
-        void HandleSignInResult(xbox::services::xbox_live_result<xbox::services::system::sign_in_result> &t);
-        void UpdateCurrentUser();
+        //void HandleSignInResult(xbox::services::xbox_live_result<xbox::services::system::sign_in_result> &t);
+        void UpdateCurrentUser(int index);
 
-        std::shared_ptr<xbox::services::system::xbox_live_user> m_user;
+        //std::shared_ptr<xbox::services::system::xbox_live_user> m_user;
 
         // Title Info
         uint32_t                                           m_titleId;
         std::wstring                                       m_scid;
 
+        uint32_t                                           m_supportedUserCount;
+
         // UI Elements
-        ATG::Legend*                                       m_gamertag;
-        ATG::Image*                                        m_gamerPic;
-        ATG::IPanel*                                       m_userDependentPanel;
-        ATG::IPanel*                                       m_nouserDependentPanel;
-        ATG::TextLabel*                                    m_sandboxLabel;
-        ATG::TextLabel*                                    m_titleIdLabel;
-        ATG::TextLabel*                                    m_scidLabel;
-        ATG::TextLabel*                                    m_signInErrorLabel;
+        ATG::Legend*                                       m_gamertag[MAX_USER] = {0};
+        ATG::Image*                                        m_gamerPic[MAX_USER] = {0};
+        ATG::IPanel*                                       m_userDependentPanel[MAX_USER] = {0};
+        ATG::IPanel*                                       m_nouserDependentPanel[MAX_USER] = { 0 };;
+        ATG::TextLabel*                                    m_sandboxLabel = nullptr;
+        ATG::TextLabel*                                    m_titleIdLabel = nullptr;
+        ATG::TextLabel*                                    m_scidLabel = nullptr;
+        ATG::TextLabel*                                    m_signInErrorLabel = nullptr;
 
         std::mutex m_writeLock;
         std::unordered_map<function_context, std::function<void(std::shared_ptr<xbox::services::system::xbox_live_user>, xbox::services::system::sign_in_status)>> m_signinRoutedHandlers;
